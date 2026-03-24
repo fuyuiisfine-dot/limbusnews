@@ -13,6 +13,9 @@ on:
 
   # 3. 允許在 GitHub 網頁上手動按按鈕執行 (除錯必備)
   workflow_dispatch:
+    
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODEJS24 : "true"
 
 jobs:
   automation:
