@@ -13,7 +13,7 @@ on:
 
   # 3. 允許在 GitHub 網頁上手動按按鈕執行 (除錯必備)
   workflow_dispatch:
-    
+
 env:
     FORCE_JAVASCRIPT_ACTIONS_TO_NODEJS24 : "true"
 
@@ -22,18 +22,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            freeglut3-dev libgtk-3-dev libjpeg-dev libtiff-dev \
+            libsdl2-dev libnotify-dev libsm-dev libwebkit2gtk-4.0-dev \
+            libxtst-dev libgstreamer-plugins-base1.0-dev xvfb
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+          cache: 'pip' # 啟用快取，加速後續執行
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip wheel setuptools
+          # 關鍵：優先尋找預編譯的 wheel，避免在 CI 環境中編譯 wxPython
+          pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run main script
-        run: python main.py
+      - name: Run main script with Virtual Display
+        run: |
+          # wxPython 需要 GUI 環境，CI 環境必須使用 xvfb 模擬顯示器
+          xvfb-run --server-args="-screen 0 1024x768x24" python main.py
