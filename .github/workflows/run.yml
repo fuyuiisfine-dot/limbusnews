@@ -1,0 +1,36 @@
+name: Daily Auto Script
+
+on:
+  # 1. 定期執行 (使用 Cron 語法)
+  schedule:
+    # 這裡設定的是 UTC 時間。例如想在台灣時間每天早上 8 點執行：
+    # 台灣 (UTC+8) 08:00 = UTC 00:00
+    - cron: '0 0 * * *' 
+
+  # 2. 推送程式碼時執行 (測試用)
+  push:
+    branches: [ "main" ]
+
+  # 3. 允許在 GitHub 網頁上手動按按鈕執行 (除錯必備)
+  workflow_dispatch:
+
+jobs:
+  automation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run main script
+        run: python main.py
