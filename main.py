@@ -11,6 +11,7 @@ def getlastgid():
             return f.read().strip()
     else:
         return None
+    
 def savegid(newsid):
     with open(Last_GID,"w") as f:
         f.write(str(newsid))
@@ -43,6 +44,7 @@ def fetch_limbus_news():
         }
         #4. 透過 Webhook 發送
         requests.post(WEBHOOK_URL, json=payload)
+        savegid(current_gid)
         print("訊息已送出！")
         
     else:
