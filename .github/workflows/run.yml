@@ -1,48 +1,35 @@
-name: Daily Auto Script
+name: Limbus News Bot
 
 on:
-  # 1. 定期執行 (使用 Cron 語法)
   schedule:
-    # 這裡設定的是 UTC 時間。例如想在台灣時間每天早上 8 點執行：
-    # 台灣 (UTC+8) 08:00 = UTC 00:00
-    - cron: '0 0 * * *' 
-
-  # 2. 推送程式碼時執行 (測試用)
-  push:
-    branches: [ "main" ]
-
-  # 3. 允許在 GitHub 網頁上手動按按鈕執行 (除錯必備)
-  workflow_dispatch:
-
-env:
-    FORCE_JAVASCRIPT_ACTIONS_TO_NODEJS24 : "true"
+    # 每 30 分鐘執行一次 (UTC 時間)
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # 允許手動觸發測試
 
 jobs:
-  automation:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-        - name: checkout code
-          uses: actions/checkout@v3
-        - name: Set up Python
-          uses: actions/setup-python@v5
-          with:
-            python-version: '3.10'
-            cache: 'pip' # 啟用快取，加速後續執行
-        - name: Install system dependencies
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y \
-            freeglut3-dev libgtk-3-dev libjpeg-dev libtiff-dev \
-            libsdl2-dev libnotify-dev libsm-dev libwebkit2gtk-4.1-dev \
-            libxtst-dev libgstreamer-plugins-base1.0-dev xvfb
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-        - name: Install Python dependencies
-          run: |
-            python -m pip install --upgrade pip wheel setuptools
-            # 關鍵：優先尋找預編譯的 wheel，避免在 CI 環境中編譯 wxPython
-            pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
-            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
 
-        - name: Run the script
-          run: xvfb-run -a python main.py
+    - name: Install dependencies
+      run: |
+        pip install requests beautifulsoup4
+
+    - name: Run script
+      run: python main.py
+
+    - name: Commit and push if ID changed
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add last_new_id.txt
+        git commit -m "Update last news ID" || exit 0
+        git push
