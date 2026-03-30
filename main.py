@@ -7,7 +7,7 @@ WEBHOOK_URL = os.getenv("WEB_URL")
 cdn_prefix = "https://clan.cloudflare.steamstatic.com/images/"
 Last_GID = "last_new_id.txt"
 
-#get last steeam gid
+#get last steam gid
 def getlastgid():
     if os.path.exists(Last_GID):
         with open(Last_GID,"r") as f:
@@ -37,14 +37,15 @@ def fetch_limbus_news():
     # 依照結構抓出需要的資料
     news_item = data["appnews"]["newsitems"][0]
     current_gid = news_item["gid"]
-    print(data) #測試
     last_id = getlastgid()
+    
     if current_gid != last_id:
         # 3. 準備發送給 Discord 的資料
         title = news_item["title"]
         link = news_item["url"]
         content = news_item["contents"]
 
+        #處理圖片顯示問題，讓圖片能正常顯示在discord上
         if "{STEAM_CLAN_IMAGE}" in content:
             content = content.replace("{STEAM_CLAN_IMAGE}/", cdn_prefix)
         else:
