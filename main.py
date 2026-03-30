@@ -2,9 +2,12 @@ import requests
 import os
 from bs4 import BeautifulSoup
 
-# 這是你剛才複製的 Webhook URL
-WEBHOOK_URL = "https://discordapp.com/api/webhooks/1483905208181457117/Bz5sUjYX7auxz_TgazkjW7VcQzXMfr1mib7YqBrSuLc1TJbnqfEO90p_jMWgBLFD2Hvz"
+#webhook url but need to improve its security in the future
+WEBHOOK_URL = os.getenv("WEB_URL")
+cdn_prefix = "https://clan.cloudflare.steamstatic.com/images/"
 Last_GID = "last_new_id.txt"
+
+#get last steeam gid
 def getlastgid():
     if os.path.exists(Last_GID):
         with open(Last_GID,"r") as f:
@@ -12,15 +15,17 @@ def getlastgid():
     else:
         return None
     
+#save steam gid
 def savegid(newsid):
     with open(Last_GID,"w") as f:
         f.write(str(newsid))
 
+#get steam news
 def fetch_limbus_news():
 
     api_url = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
     params = {
-        "appid": 1973530,
+        "appid": 1973530,    
         "count": 1,          # 只拿最新一則
         "maxlength": 500,    # 直接限制字數
         "format": "json"
@@ -40,6 +45,11 @@ def fetch_limbus_news():
         link = news_item["url"]
         content = news_item["contents"]
 
+        if "{STEAM_CLAN_IMAGE}" in content:
+            content = content.replace("{STEAM_CLAN_IMAGE}/", cdn_prefix)
+        else:
+            return content
+        
         payload = {
         "username": "梅菲斯特情報號",
         "content": f"📢 **最新消息通知**\n{title}\n連結: {link}\n 大綱 : {content}"
