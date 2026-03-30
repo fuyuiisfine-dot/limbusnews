@@ -38,7 +38,7 @@ def fetch_limbus_news():
     news_item = data["appnews"]["newsitems"][0]
     current_gid = news_item["gid"]
     last_id = getlastgid()
-    
+
     if current_gid != last_id:
         # 3. 準備發送給 Discord 的資料
         title = news_item["title"]
@@ -53,7 +53,7 @@ def fetch_limbus_news():
         
         payload = {
         "username": "梅菲斯特情報號",
-        "content": f"📢 **最新消息通知**\n{title}\n連結: {link}\n 大綱 : {content}"
+        "content": f"📢 **最新消息通知**\n{title}\n連結: {link}\n大綱 : {content}"
         }
         #4. 透過 Webhook 發送
         requests.post(WEBHOOK_URL, json=payload)
