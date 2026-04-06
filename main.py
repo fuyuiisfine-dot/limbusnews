@@ -1,6 +1,7 @@
 import requests
 import os
 from bs4 import BeautifulSoup
+import sys
 
 #webhook url but need to improve its security in the future
 WEBHOOK_URL = os.getenv("WEB_URL")
@@ -23,6 +24,9 @@ def savegid(newsid):
 #get steam news
 def fetch_limbus_news():
 
+    if not WEBHOOK_URL:
+        print("錯誤：找不到 DISCORD_WEBHOOK_URL 環境變數！")
+        sys.exit(1)  # 讓程式主動停止，並噴出好懂的錯誤訊息
     api_url = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
     params = {
         "appid": 1973530,    
