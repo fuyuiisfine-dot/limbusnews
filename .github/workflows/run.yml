@@ -1,7 +1,4 @@
 name: Limbus News Bot
-env:
-  # 這一行是關鍵：將 GitHub 的秘密載入為環境變數
-  DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
 on:
   schedule:
@@ -27,6 +24,9 @@ jobs:
         pip install requests beautifulsoup4
 
     - name: Run script
+      env:
+      # 這一行是關鍵：將 GitHub 的秘密載入為環境變數
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: python main.py
 
     - name: Commit and push if ID changed
@@ -41,3 +41,4 @@ jobs:
         else
           echo "No changes to commit"
           fi
+     
