@@ -1,4 +1,7 @@
 name: Limbus News Bot
+env:
+  # 這一行是關鍵：將 GitHub 的秘密載入為環境變數
+  DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
 
 on:
   schedule:
