@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import sys
 
 #webhook url but need to improve its security in the future
-WEBHOOK_URL = os.getenv("WEB_URL")
+WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 cdn_prefix = "https://clan.cloudflare.steamstatic.com/images/"
 Last_GID = "last_new_id.txt"
 
