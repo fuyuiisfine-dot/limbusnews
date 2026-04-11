@@ -1,6 +1,6 @@
 import requests
 import os
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as bs
 import sys
 
 #webhook url but need to improve its security in the future
@@ -47,20 +47,25 @@ def steam_fetch_limbus_news():
         # 3. 準備發送給 Discord 的資料
         title = news_item["title"]
         link = news_item["url"]
-        content = news_item["contents"]
+        raw_content = news_item["contents"]
 
         #處理圖片顯示問題，讓圖片能正常顯示在discord上
-        if "{STEAM_CLAN_IMAGE}" in content:
-            content = content.replace("{STEAM_CLAN_IMAGE}/", cdn_prefix)
-        
+        if "{STEAM_CLAN_IMAGE}" in raw_content:
+            raw_content = raw_content.replace("{STEAM_CLAN_IMAGE}/", cdn_prefix)
+        ## else: return content 切記return 後的自動結束此函式
+        soup = bs(raw_content,"html.parser")
+        clean_content = soup.get_text()
         payload = {
         "username": "梅菲斯特情報號",
-        "content": f"📢 **最新消息通知**\n{title}\n連結: {link}\n大綱 : {content}"
+        "content": f"📢 **最新消息通知**\n{title}\n連結: {link}\n大綱 : {clean_content}"
         }
         #4. 透過 Webhook 發送
-        requests.post(WEBHOOK_URL, json=payload)
-        savegid(current_gid)
-        print("訊息已送出！")
+        res = requests.post(WEBHOOK_URL, json=payload)
+        if res.status_code == 204:
+            savegid(current_gid)
+            print("訊息已送出至discord！")
+        else:
+            print(f"傳送至discord失敗，狀態碼 : {res.status_code}")
         
     else:
         print("目前沒有新消息")
