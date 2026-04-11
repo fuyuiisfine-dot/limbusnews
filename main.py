@@ -22,7 +22,7 @@ def savegid(newsid):
         f.write(str(newsid))
 
 #get steam news
-def fetch_limbus_news():
+def steam_fetch_limbus_news():
 
     if not WEBHOOK_URL:
         print("錯誤：找不到 DISCORD_WEBHOOK_URL 環境變數！")
@@ -52,8 +52,6 @@ def fetch_limbus_news():
         #處理圖片顯示問題，讓圖片能正常顯示在discord上
         if "{STEAM_CLAN_IMAGE}" in content:
             content = content.replace("{STEAM_CLAN_IMAGE}/", cdn_prefix)
-        else:
-            return content
         
         payload = {
         "username": "梅菲斯特情報號",
@@ -66,8 +64,7 @@ def fetch_limbus_news():
         
     else:
         print("目前沒有新消息")
-
-
+    
 if __name__ == "__main__":
-    fetch_limbus_news()
+    steam_fetch_limbus_news()
     
