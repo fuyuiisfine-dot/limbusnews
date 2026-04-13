@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=D:\vcode\limbusrobot\.venv
+set VIRTUAL_ENV=D:\Documents\GitHub\limbusnews\.venv
 
 if not defined PROMPT set PROMPT=$P$G
 
