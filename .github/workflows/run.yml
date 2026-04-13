@@ -2,8 +2,8 @@ name: Limbus News Bot
 
 on:
   schedule:
-    # every 6 hours (UTC time)
-    - cron: '*/5 * * * *'
+    # every 10 min (UTC time)
+    - cron: '*/10 * * * *'
   workflow_dispatch: # 允許手動觸發測試
 
 jobs:
@@ -34,11 +34,12 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         # 檢查是否有檔案變動，避免空提交報錯
+        git pull
         if [ -n "$(git status --porcelain)" ]; then
           git add last_new_id.txt
           git commit -m "Update last news ID"
           git push
         else
           echo "No changes to commit"
-          fi
+        fi
      
