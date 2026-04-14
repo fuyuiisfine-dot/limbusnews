@@ -3,7 +3,7 @@ name: Limbus News Bot
 on:
   schedule:
     # every 10 min (UTC time)
-    - cron: '*/10 * * * *'
+    - cron: '*/30 * * * *'
   workflow_dispatch: # 允許手動觸發測試
 
 jobs:
@@ -27,6 +27,7 @@ jobs:
       env:
         # 這一行是關鍵：將 GitHub 的秘密載入為環境變數
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      
       run: python main.py
 
     - name: Commit and push if ID changed
