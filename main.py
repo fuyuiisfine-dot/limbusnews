@@ -7,6 +7,7 @@ import sys
 WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 cdn_prefix = "https://clan.cloudflare.steamstatic.com/images/"
 Last_GID = "last_new_id.txt"
+Max_COUNT = "maxcount.txt"
 
 #get last steam gid
 def getlastgid():
@@ -15,11 +16,12 @@ def getlastgid():
             return f.read().strip()
     else:
         return None
-    
+
 #save steam gid
 def savegid(newsid):
     with open(Last_GID,"w") as f:
         f.write(str(newsid))
+
 
 #get steam news
 def steam_fetch_limbus_news():
@@ -30,7 +32,7 @@ def steam_fetch_limbus_news():
     api_url = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
     params = {
         "appid": 1973530,    
-        "count": 1,          # 只拿最新一則
+        "count": 5,          # 只拿最新一則
         "maxlength": 500,    # 直接限制字數
         "format": "json"
     }
@@ -39,15 +41,18 @@ def steam_fetch_limbus_news():
     data = response.json() # 將 JSON 轉為 Python 字典
     
     # 依照結構抓出需要的資料
-    news_item = data["appnews"]["newsitems"][0]
-    current_gid = news_item["gid"]
-    last_id = getlastgid()
-
-    if current_gid != last_id:
-        # 3. 準備發送給 Discord 的資料
-        title = news_item["title"]
-        link = news_item["url"]
-        raw_content = news_item["contents"]
+    news_item = data["appnews"]["newsitems"]
+    last_gid = getlastgid()
+    new_posts = []
+    for item in news_item:
+        if item["gid"] == last_gid:
+            break
+        new_posts.append(item)
+    for post in reversed(new_posts):
+        #準備發送給 Discord 的資料
+        title = post["title"]
+        link = post["url"]
+        raw_content = post["contents"]
 
         #處理圖片顯示問題，讓圖片能正常顯示在discord上
         if "{STEAM_CLAN_IMAGE}" in raw_content:
@@ -59,17 +64,19 @@ def steam_fetch_limbus_news():
         "username": "梅菲斯特情報號",
         "content": f"📢 **最新消息通知**\n{title}\n連結: {link}\n大綱 : {clean_content}"
         }
-        #4. 透過 Webhook 發送
+
+        #透過 Webhook 發送
         res = requests.post(WEBHOOK_URL, json=payload)
-        if res.status_code == 204:
-            savegid(current_gid)
-            print("訊息已送出至discord！")
-        else:
-            print(f"傳送至discord失敗，狀態碼 : {res.status_code}")
-        
+    if res.status_code == 204:
+        print("訊息已送出至discord！")
     else:
-        print("目前沒有新消息")
-    
+        print(f"傳送至discord失敗，狀態碼 : {res.status_code}")
+    if new_posts:
+        savegid(new_posts[0]["gid"])
+        print(f"已更新最新 GID 為: {new_posts[0]['gid']}")
+    else:
+        print(f"目前沒有最新的新聞，目前最新的 GID 是:{getlastgid()}")
+
 if __name__ == "__main__":
     steam_fetch_limbus_news()
     
