@@ -66,11 +66,7 @@ def steam_fetch_limbus_news():
         }
 
         #透過 Webhook 發送
-        res = requests.post(WEBHOOK_URL, json=payload)
-    if res.status_code == 204:
-        print("訊息已送出至discord！")
-    else:
-        print(f"傳送至discord失敗，狀態碼 : {res.status_code}")
+        requests.post(WEBHOOK_URL, json=payload)
     if new_posts:
         savegid(new_posts[0]["gid"])
         print(f"已更新最新 GID 為: {new_posts[0]['gid']}")
