@@ -38,8 +38,14 @@ def steam_fetch_limbus_news():
     }
 
     response = requests.get(api_url, params=params)
-    data = response.json() # 將 JSON 轉為 Python 字典
-    
+    print(f"debug : status code = {response.status_code}")
+    if response.status_code == 200:
+        try:
+            data = response.json() # 將 JSON 轉為 Python 字典
+        except requests.exceptions.JSONDecodeError:
+            print("get something but not a json")
+    else:
+        print("get nothing")
     # 依照結構抓出需要的資料
     news_item = data["appnews"]["newsitems"]
     last_gid = getlastgid()
