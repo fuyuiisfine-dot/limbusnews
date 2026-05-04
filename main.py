@@ -72,7 +72,7 @@ def steam_fetch_limbus_news():
 
         payload = {
             "username": "梅菲斯特情報號",
-            "content": f"📌 **標題:{title}**\n[點我查看]({link})\n大綱:\n{clean_content}\n"
+            "content": f"📌\n**標題:{title}**\n[點我查看]({link})\n大綱:\n{clean_content}\n"
         }
             
             #透過 Webhook 發送
