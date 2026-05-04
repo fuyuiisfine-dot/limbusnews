@@ -7,7 +7,6 @@ import sys
 WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
 cdn_prefix = "https://clan.cloudflare.steamstatic.com/images/"
 Last_GID = "last_new_id.txt"
-Max_COUNT = "maxcount.txt"
 
 #get last steam gid
 def getlastgid():
@@ -32,13 +31,16 @@ def steam_fetch_limbus_news():
     api_url = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
     params = {
         "appid": 1973530,    
-        "count": 5,          # 只拿最新一則
+        "count": 1,          # 只拿最新一則
         "maxlength": 500,    # 直接限制字數
         "format": "json"
     }
 
     response = requests.get(api_url, params=params)
     print(f"debug : status code = {response.status_code}")
+    if(response.status_code != 200):
+        print("error")
+        return
     if response.status_code == 200:
         try:
             data = response.json() # 將 JSON 轉為 Python 字典
@@ -46,6 +48,7 @@ def steam_fetch_limbus_news():
             print("get something but not a json")
     else:
         print("get nothing")
+    
     # 依照結構抓出需要的資料
     news_item = data["appnews"]["newsitems"]
     last_gid = getlastgid()
@@ -59,20 +62,23 @@ def steam_fetch_limbus_news():
         title = post["title"]
         link = post["url"]
         raw_content = post["contents"]
-
+            
         #處理圖片顯示問題，讓圖片能正常顯示在discord上
         if "{STEAM_CLAN_IMAGE}" in raw_content:
             raw_content = raw_content.replace("{STEAM_CLAN_IMAGE}/", cdn_prefix)
-        ## else: return content 切記return 後的自動結束此函式
+            ## else: return content 切記return 後的自動結束此函式
         soup = bs(raw_content,"html.parser")
         clean_content = soup.get_text()
-        payload = {
-        "username": "梅菲斯特情報號",
-        "content": f"📢 **最新消息通知**\n{title}\n連結: {link}\n大綱 : {clean_content}"
-        }
 
-        #透過 Webhook 發送
+        payload = {
+            "username": "梅菲斯特情報號",
+            "content": f"📌 **標題:{title}**\n[點我查看]({link})\n大綱:\n[image]({clean_content})\n"
+        }
+            
+            #透過 Webhook 發送
         requests.post(WEBHOOK_URL, json=payload)
+        
+    print(f"成功發送超連結組（共 {len(new_posts)} 則）")
     if new_posts:
         savegid(new_posts[0]["gid"])
         print(f"已更新最新 GID 為: {new_posts[0]['gid']}")

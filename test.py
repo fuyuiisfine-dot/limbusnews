@@ -2,6 +2,7 @@ import requests
 import os
 from bs4 import BeautifulSoup as bs
 import sys
+import xscraper as X
 
 #webhook url but need to improve its security in the future
 WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
@@ -39,7 +40,7 @@ def steam_fetch_limbus_news():
     data = response.json() # 將 JSON 轉為 Python 字典
 
     # 依照結構抓出需要的資料
-    news_item = data["appnews"]["newsitems"]
+    news_item = data["appnews"]["newsitems"][0]
     print(news_item)
     current_gid = news_item["gid"]
     last_id = getlastgid()
@@ -54,11 +55,10 @@ def steam_fetch_limbus_news():
         if "{STEAM_CLAN_IMAGE}" in raw_content:
             raw_content = raw_content.replace("{STEAM_CLAN_IMAGE}/", cdn_prefix)
         ## else: return content 切記return 後的自動結束此函式
-        soup = bs(raw_content,"html.parser")
-        clean_content = soup.get_text()
+        print(raw_content)
         payload = {
         "username": "梅菲斯特情報號",
-        "content": f"📢 **最新消息通知**\n{title}\n連結: {link}\n大綱 : {clean_content}"
+        "content": f"📢 **最新消息通知**\n{title}\n連結: {link}\n大綱 : {raw_content}"
         }
         #4. 透過 Webhook 發送
         # res = requests.post(WEBHOOK_URL, json=payload)
@@ -70,6 +70,13 @@ def steam_fetch_limbus_news():
         
     else:
         print("目前沒有新消息")
+def xfetch():
+
+    bot = X.Browserbot()
+    bot.setdriver()
+    bot.getcookies()
+    bot.x_fetch()
+    
     
 if __name__ == "__main__":
     steam_fetch_limbus_news()
