@@ -21,34 +21,6 @@ def getlastgid():
 def savegid(newsid):
     with open(Last_GID,"w") as f:
         f.write(str(newsid))
-import re
-
-def process_visual_content(text):
-    # 1. 尋找圖片網址 (以 .png, .jpg 結尾的)
-    # 我們讓它變成 [點擊看圖](網址)，且不加 <> 以便觸發預覽
-    img_pattern = r'(https?://[^\s]+\.(?:png|jpg|jpeg|gif))'
-    text = re.sub(img_pattern, r'[🖼️ 點擊看圖](\1)', text)
-    
-    # 2. 尋找一般網址 (非圖片)
-    # 一般網址建議加上 < >，因為我們通常不希望大綱裡的雜七雜八連結生出一堆預覽框
-    other_url_pattern = r'(?<!\()https?://(?!.*(?:png|jpg|jpeg|gif))[^\s]+'
-    text = re.sub(other_url_pattern, r'[🔗 連結](<\0>)', text)
-    
-    return text
-def separate_content(raw_html):
-    soup = bs(raw_html, "html.parser")
-    
-    # --- 1. 提取所有圖片網址 ---
-    # 尋找所有的 <img> 標籤
-    img_tags = soup.find_all("img")
-    # 從標籤中取出 src 屬性
-    image_urls = [img['src'] for img in img_tags if img.has_attr('src')]
-    
-    # --- 2. 提取純文字 ---
-    # get_text() 會自動忽略所有標籤，只留下文字
-    clean_text = soup.get_text(separator="\n", strip=True) 
-    
-    return clean_text, image_urls
 
 #get steam news
 def steam_fetch_limbus_news():
@@ -101,21 +73,15 @@ def steam_fetch_limbus_news():
         clean_content = soup.get_text().strip()
         print("-----")
         print(clean_content)
-        text, images = separate_content(raw_content)
-        image_links_str = ""
-        for i, img_url in enumerate(images[:3]):
-            # 注意：這裡不加 < > 以便觸發 Discord 的圖片預覽
-            image_links_str += f"[🖼️ 圖 {i+1}]({img_url}) "
-        #如果沒有圖片，則顯示「無內文圖片」
-        display_images = image_links_str if image_links_str else "無內文圖片"
 
-
+        # 待修改
         payload = {
             "username": "梅菲斯特情報號",
             "content": (f"📌\n**標題:{title}**\n"
                         f"[點我查看]({link})\n"
-                        f"大綱:\n{text}\n"
-                        f"[圖連結]({display_images})")
+                        f"大綱:\n{clean_content}\n"
+                        #f"[圖連結]({clean_images})"
+                        )
         }
             
         #透過 Webhook 發送
