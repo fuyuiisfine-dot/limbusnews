@@ -1,122 +1,104 @@
 import requests
 import os
-from bs4 import BeautifulSoup as bs
 from selenium import webdriver 
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager # the import one is important
-import time
-import json
+import feedparser
 
-class Browserbot():
+class Browserbot:
 
     def __init__(self):
+
+        self.lastfile = "LASTFILE.txt"
+        self.RSS_URL = os.getenv("X_RSS_URL")
         self.driver = None
         self.brave_path = r"C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
+
     def setdriver(self):
 
         options = Options()
         options.binary_location = self.brave_path
-        # 被瀏覽器提示被自動化腳本使用，從而登入不了，詢問後得到這代碼
-        # 待理解
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option('useAutomationExtension', False)
-        
-        # 2. 隱藏自動化特徵 (這對 X/Twitter 等網站非常重要)
-        options.add_argument("--disable-blink-features=AutomationControlled")
-
         service = Service(ChromeDriverManager().install()) #get the webdriver_manager.chrome
         self.driver = webdriver.Chrome(service=service, options=options)
-        # 被瀏覽器提示被自動化腳本使用，從而登入不了，詢問後得到這代碼
-        # 待理解
-        self.driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-        "source": """
-        Object.defineProperty(navigator, 'webdriver', {
-          get: () => undefined
-        })
-        """
-        })
+
         return self.driver
 
-    def x_get_cookies(self,url):
-        driver = self.setdriver()
-        driver.get(url)
-        input("請在瀏覽器完成登入後，回到這裡按 Enter 鍵...")
-        cookies = driver.get_cookies()
-        with open("cookies.json","w") as f:
-            json.dump(cookies,f)
-        driver.quit()
+    def get_lastlink(self):
+        with open(self.lastfile,"r") as f:
+            return f.read().strip()
+        return None
+    
+    def save_lastlink(self,link):
+        with open(self.lastfile,"w") as f:
+            f.write(str(link))
 
+    def x_fetch(self):
+        
+        print("正在檢查 Limbus Company X 狀態...")
+        # 解析 RSS 內容
+        feed = feedparser.parse(self.RSS_URL)
+    
+        # 確保有抓到資料
+        if not feed.entries:
+            print("暫時無法讀取 RSS 資料或該帳號尚未發文。")
+            return
 
-    def x_fetch(self,url):
-        # 1. 啟動並載入 Cookie (假設你已經執行過 x_fetch 邏輯) 
-        # # 系統化理由：等待動態腳本渲染推文
-        driver = self.setdriver()
-        driver.get(url)
-        try:
-            with open("cookies.json","r") as f:
-                cookies = json.load(f)
-            for xcookies in cookies:
-                driver.add_cookie(xcookies)
-            driver.refresh()
-            time.sleep(5)
-        except FileNotFoundError:
-            print("找不到 Cookie 檔案，請先執行儲存流程")
-        print(driver.title)
-        # 2. 抓取推文
-        # X 的推文內容通常存放在 data-testid="tweetText" 的標籤中
-        try:
-            # 使用 find_elements (複數) 抓取頁面上目前可見的所有推文
-            from selenium.webdriver.common.by import By
-            tweets = self.driver.find_elements(By.CSS_SELECTOR, '[data-testid="tweetText"]')
+        # RSS 預設第一筆 (entries[0]) 就是最新的一條推文
+        latest_entry = feed.entries[0]
+        latest_link = latest_entry.link  # 取得推文的實際網址
+        
+        last_sent_link = self.get_lastlink()
+
+        # 第一次執行：只紀錄不發送，避免把歷史推文洗版
+        if last_sent_link is None:
+            self.save_lastlink(latest_link)
+            print(f"初始化成功，當前最新推文網址: {latest_link}")
+            return
+        if latest_link == last_sent_link:
+            print("we don't get anything")
+            return
+        # 檢查是否有新推文
+        if latest_link != last_sent_link:
+
+            print(f"偵測到新更新！準備發送: {latest_link}")
             
-            print(f"--- 成功抓取到 {len(tweets)} 則內容 ---")
-            
-            news_list = []
-            #這邊不會 enuerate 做甚麼的
-            for i, tweet in enumerate(tweets):
-                try:
-                    content = tweet.text
-                    title = content.replace("\n", " ")[:15] + "..."
-                    # 3. 連結 (Link) 
-                    # 邏輯：在推文內找尋包含 "/status/" 字眼的 <a> 標籤，這就是推文唯一連結
-                    link_element = tweet.find_element(By.XPATH, './/a[contains(@href, "/status/")]')
-                    link = link_element.get_attribute("href")
-                    # 4. 封裝資料
-                    news_list.append({
-                    "title": title,
-                    "content": content,
-                    "link": link
-                    })
-                    print(f"成功抓取第 {i+1} 則：{title}")
-                    print(f"{i+1}. {content[:50]}...") # 預覽前50字
-                except Exception as e:
-                    print(f"第 {i+1} 則部分資訊抓取失敗: {e}")
-                    continue
             payload = {
             "username": "梅菲斯特情報號",
-            "content": f"📢 **最新消息通知**\n{news_list['title']}\n連結: {news_list['link']}\n大綱 : {news_list['content']}"
+            "content": f"📢 **最新消息通知**\n{latest_link}"
             }
+            headers = {
+                "Content-Type": "application/json"
+            }
+            
+            DISCORD_WEB_URL = os.getenv("DISCORD_WEBHOOK_URL")
+            # 推送到 Discord Webhook
+            response = requests.post(DISCORD_WEB_URL, json=payload, headers=headers)
+            
+            if response.status_code == 204:
+                print("Discord 訊息發送成功。")
+                self.save_lastlink(latest_link)  # 發送成功後更新紀錄
+            else:
+                print(f"發送 Discord 失敗，狀態碼: {response.status_code}")
+        else:
+            print("沒有偵測到新推文。")
 
-            #透過 Webhook 發送
-            WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
-            requests.post(WEBHOOK_URL, json=payload)
+    def main(self):
 
-        except Exception as e:
-            print(f"抓取失敗: {e}")
-            return []
-        finally:
-            # 視需求決定是否關閉
-            # self.driver.quit()
-            driver.quit()
+        print("Limbus Company RSS 監控機器人已啟動...")
+        self.x_fetch()
+        
+        
+
+
+        
         
 if __name__ == "__main__":
 
     xbot = Browserbot()
-    xbot.x_get_cookies("https://x.com/i/flow/login")
-    xbot.x_fetch("https://x.com/LimbusCompany_B")
+    xbot.main()
 
-#抓取內容失敗，待修繕
+
         
 
 

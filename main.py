@@ -3,6 +3,7 @@ import os
 from bs4 import BeautifulSoup as bs
 import sys
 import re
+import xscraper
 
 #webhook url but need to improve its security in the future
 WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
@@ -62,7 +63,7 @@ def steam_fetch_limbus_news():
         title = post["title"]
         link = post["url"]
         raw_content = post["contents"]
-        print(raw_content)
+       
             
         #處理圖片顯示問題，讓圖片能正常顯示在discord上
         if "{STEAM_CLAN_IMAGE}" in raw_content:
@@ -71,8 +72,7 @@ def steam_fetch_limbus_news():
         
         soup = bs(raw_content,"html.parser")
         clean_content = soup.get_text().strip()
-        print("-----")
-        print(clean_content)
+        
 
         # 待修改
         payload = {
@@ -95,5 +95,8 @@ def steam_fetch_limbus_news():
         print(f"目前沒有最新的新聞，目前最新的 GID 是:{getlastgid()}")
 
 if __name__ == "__main__":
+
+    xbot = xscraper.Browserbot()
+    xbot.main()
     steam_fetch_limbus_news()
     
