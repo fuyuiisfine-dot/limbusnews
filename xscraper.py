@@ -1,9 +1,5 @@
 import requests
 import os
-from selenium import webdriver 
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager # the import one is important
 import feedparser
 
 class Browserbot:
@@ -14,15 +10,6 @@ class Browserbot:
         self.RSS_URL = os.getenv("X_RSS_URL")
         self.driver = None
         self.brave_path = r"C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
-
-    def setdriver(self):
-
-        options = Options()
-        options.binary_location = self.brave_path
-        service = Service(ChromeDriverManager().install()) #get the webdriver_manager.chrome
-        self.driver = webdriver.Chrome(service=service, options=options)
-
-        return self.driver
 
     def get_lastlink(self):
         with open(self.lastfile,"r") as f:
