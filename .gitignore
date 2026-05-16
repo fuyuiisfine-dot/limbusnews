@@ -1,2 +1,6 @@
 *.env
-*last_new_id.txt
+last_new_id.txt
+.venv/
+__pycache__/
+*.pyc
+LASTFILE.txt
