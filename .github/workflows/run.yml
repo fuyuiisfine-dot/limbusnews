@@ -21,7 +21,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install requests beautifulsoup4 feedparser
+        pip install requests beautifulsoup4 feedparser selenium
 
     - name: Run script
       env:
