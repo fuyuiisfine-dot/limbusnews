@@ -7,9 +7,12 @@ class Browserbot:
     def __init__(self):
 
         self.lastfile = "LASTFILE.txt"
+        # 乾淨、直覺、在本地絕對不會出錯的寫法
         self.RSS_URL = os.getenv("X_RSS_URL")
-        self.driver = None
-        self.brave_path = r"C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
+
+        if not self.RSS_URL:
+        # 如果本地作業系統沒設定變數，就直接用這個真實網址
+            self.RSS_URL = "https://rss.app/feeds/WQnu37hFsCx3HJ9y.xml"
 
     def get_lastlink(self):
         with open(self.lastfile,"r") as f:
@@ -21,6 +24,7 @@ class Browserbot:
             f.write(str(link))
 
     def x_fetch(self):
+
         
         print("正在檢查 Limbus Company X 狀態...")
         # 解析 RSS 內容
@@ -41,9 +45,6 @@ class Browserbot:
         if last_sent_link is None:
             self.save_lastlink(latest_link)
             print(f"初始化成功，當前最新推文網址: {latest_link}")
-            return
-        if latest_link == last_sent_link:
-            print("we don't get anything")
             return
         # 檢查是否有新推文
         if latest_link != last_sent_link:
