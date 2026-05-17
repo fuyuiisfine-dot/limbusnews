@@ -35,12 +35,14 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         # 檢查是否有檔案變動，避免空提交報錯
-        git pull
-        if [ -n "$(git status --porcelain)" ]; then
-          git add last_new_id.txt
+        git pull origin main
+        if git status --porcelain last_link.txt | grep -q 'M'; then
+          echo "🔥 偵測到 last_link.txt 有更新，準備提交回儲存庫..."
+          git add last_link.txt
           git commit -m "Update last news ID"
-          git push
+          git push origin main
         else
-          echo "No changes to commit"
+          # 如果檔案沒變（沒有新推文），就印出這行，優雅地結束，絕對不報錯
+          echo "😴 last_link.txt 沒有任何變動，跳過 Commit。"
         fi
      
