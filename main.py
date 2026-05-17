@@ -77,7 +77,7 @@ def steam_fetch_limbus_news():
         # 待修改
         payload = {
             "username": "梅菲斯特情報號",
-            "content": (f"📌\n**標題:{title}**\n"
+            "content": (f"📌**Ciallo～(∠・ω< )⌒☆:{title}**\n"
                         f"[點我查看]({link})\n"
                         f"大綱:\n{clean_content}\n"
                         #f"[圖連結]({clean_images})"
