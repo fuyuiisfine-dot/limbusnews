@@ -53,7 +53,7 @@ class Browserbot:
             
             payload = {
             "username": "梅菲斯特情報號",
-            "content": f"📢 **最新消息通知**\n{latest_link}"
+            "content": f"📢 **Ciallo～(∠・ω< )⌒☆**\n{latest_link}"
             }
             headers = {
                 "Content-Type": "application/json"
