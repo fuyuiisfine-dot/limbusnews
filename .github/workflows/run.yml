@@ -45,4 +45,10 @@ jobs:
           # 如果檔案沒變（沒有新推文），就印出這行，優雅地結束，絕對不報錯
           echo "😴 last_link.txt 沒有任何變動，跳過 Commit。"
         fi
+        
+        if [ -f last_new_id.txt ]; then
+          git add last_new_id.txt
+          git commit -m "chore: update last steam GID [skip ci]" || echo "No changes to commit"
+          git push
+        fi
      
