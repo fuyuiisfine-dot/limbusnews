@@ -32,7 +32,7 @@ def steam_fetch_limbus_news():
     api_url = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
     params = {
         "appid": 1973530,    
-        "count": 3,          # 只拿最新一則
+        "count": 3,          # 只拿最新五則
         "maxlength": 1000,    # 直接限制字數
         "format": "json"
     }

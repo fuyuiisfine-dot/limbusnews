@@ -38,7 +38,7 @@ jobs:
         git pull origin main
         if git status --porcelain last_link.txt | grep -q 'M'; then
           echo "🔥 偵測到 last_link.txt 有更新，準備提交回儲存庫..."
-          git add last_link.txt
+          git add LASTFILE.txt
           git commit -m "Update last news ID"
           git push origin main
         else
