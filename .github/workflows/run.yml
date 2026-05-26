@@ -36,7 +36,7 @@ jobs:
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         # 檢查是否有檔案變動，避免空提交報錯
         git pull origin main
-        if git status --porcelain last_link.txt | grep -q 'M'; then
+        if git status --porcelain LASTFILE.txt | grep -q 'M'; then
           echo "🔥 偵測到 last_link.txt 有更新，準備提交回儲存庫..."
           git add LASTFILE.txt
           git commit -m "Update last news ID"
