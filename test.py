@@ -79,5 +79,5 @@ def xfetch():
     
     
 if __name__ == "__main__":
-    steam_fetch_limbus_news()
+    xfetch()
     

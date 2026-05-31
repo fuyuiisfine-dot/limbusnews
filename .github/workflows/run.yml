@@ -2,7 +2,7 @@ name: Limbus News Bot
 
 on:
   schedule:
-    # every 10 min (UTC time)
+    # every 30 min (UTC time)
     - cron: '*/30 * * * *'
   workflow_dispatch: # 允許手動觸發測試
 
