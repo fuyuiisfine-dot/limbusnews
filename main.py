@@ -1,110 +1,42 @@
-import requests
 import os
-from bs4 import BeautifulSoup as bs
-import sys
-import re #之後正規表達式更新
-import xscraper
+from bot_core import SteamScraper, XRSSScraper, DiscordNotifier
+from dotenv import load_dotenv
 
-#webhook url but need to improve its security in the future
-WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
-cdn_prefix = "https://clan.cloudflare.steamstatic.com/images/"
-Last_GID = "last_new_id.txt"
+# 載入 .env 檔案（如果在本地執行）
+load_dotenv()
 
-class steam_robot:
+def main():
+    # 1. 準備工具
+    # 優先從環境變數讀取 Webhook URL
+    webhook = os.getenv("DISCORD_WEBHOOK_URL")
+    discord = DiscordNotifier(webhook)
 
-    def __init__(self):
-        self.WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
-        self.cdn_prefix = "https://clan.cloudflare.steamstatic.com/images/"
-        self.Last_GID = "last_new_id.txt"
-        
-    #get last steam gid
-    def getlastgid(self):
-        if os.path.exists(self.Last_GID):
-            with open(self.Last_GID,"r") as f:
-                return f.read().strip()
-        else:
-            return None
+    # 2. 設定檢查源
+    # Steam: Limbus Company AppID = 1973530
+    steam_bot = SteamScraper(app_id=1973530, state_file="last_new_id.txt")
+    
+    # X (Twitter): 使用 RSS 服務
+    rss_url = os.getenv("X_RSS_URL", "https://rss.app/feeds/WQnu37hFsCx3HJ9y.xml")
+    x_bot = XRSSScraper(rss_url=rss_url, state_file="LASTFILE.txt")
 
-    #save steam gid
-    def savegid(self,newsid):
-        with open(self.Last_GID,"w") as f:
-            f.write(str(newsid))
+    # 3. 執行 Steam 檢查
+    print("正在檢查 Steam 更新...")
+    for post in steam_bot.fetch_new_posts():
+        msg = (f"📌 **Ciallo～(∠・ω< )⌒☆:{post['title']}**\n"
+               f"[點我查看連結]({post['url']})\n"
+               f"大綱:\n{post['content'][:500]}...") # 限制大綱長度避免訊息過長
+               
+        if discord.notify(msg):
+            steam_bot.save_last_id(post['gid'])
+            print(f"成功發送 Steam 新聞: {post['title']}")
 
-    #get steam news
-    def steam_fetch_limbus_news(self):
-
-        if not WEBHOOK_URL:
-            print("錯誤：找不到 DISCORD_WEBHOOK_URL 環境變數！")
-            sys.exit(1)  # 讓程式主動停止，並噴出好懂的錯誤訊息
-        api_url = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
-        params = {
-            "appid": 1973530,    
-            "count": 3,          # 只拿最新三則
-            "maxlength": 1000,    # 直接限制字數
-            "format": "json"
-        }
-
-        response = requests.get(api_url, params=params)
-        print(f"debug : status code = {response.status_code}")
-        if(response.status_code != 200):
-            print("error")
-            return
-        if response.status_code == 200:
-            try:
-                data = response.json() # 將 JSON 轉為 Python 字典
-            except requests.exceptions.JSONDecodeError:
-                print("get something but not a json")
-        else:
-            print("get nothing")
-        
-        # 依照結構抓出需要的資料
-        news_item = data["appnews"]["newsitems"]
-        last_gid = self.getlastgid()
-        new_posts = []
-        for item in news_item:
-            if item["gid"] == last_gid:
-                break
-            new_posts.append(item)
-        for post in reversed(new_posts):
-            #準備發送給 Discord 的資料
-            title = post["title"]
-            link = post["url"]
-            raw_content = post["contents"]
-        
-                
-            #處理圖片顯示問題，讓圖片能正常顯示在discord上
-            if "{STEAM_CLAN_IMAGE}" in raw_content:
-                raw_content = raw_content.replace("{STEAM_CLAN_IMAGE}/", cdn_prefix)
-                ## else: return content 切記return 後的自動結束此函式
-            
-            soup = bs(raw_content,"html.parser")
-            clean_content = soup.get_text().strip()
-            
-
-            # 待修改
-            payload = {
-                "username": "梅菲斯特情報號",
-                "content": (f"📌**Ciallo～(∠・ω< )⌒☆:{title}**\n"
-                            f"[點我查看]({link})\n"
-                            f"大綱:\n{clean_content}\n"
-                            #f"[圖連結]({clean_images})"
-                            )
-            }
-                
-            #透過 Webhook 發送
-            requests.post(WEBHOOK_URL, json=payload)
-            
-        print(f"成功發送超連結組（共 {len(new_posts)} 則）")
-        if new_posts:
-            self.savegid(new_posts[0]["gid"])
-            print(f"已更新最新 GID 為: {new_posts[0]['gid']}")
-        else:
-            print(f"目前沒有最新的新聞，目前最新的 GID 是:{self.getlastgid()}")
+    # 4. 執行 X 檢查
+    print("正在檢查 X 更新...")
+    for post in x_bot.fetch_new_posts():
+        msg = f"📢 **Ciallo～(∠・ω< )⌒☆**\n{post.link}"
+        if discord.notify(msg):
+            x_bot.save_last_id(post.link)
+            print(f"成功發送 X 推文: {post.link}")
 
 if __name__ == "__main__":
-
-    xbot = xscraper.Browserbot()
-    xbot.main()
-    steambot = steam_robot()
-    steambot.steam_fetch_limbus_news()
-    
+    main()

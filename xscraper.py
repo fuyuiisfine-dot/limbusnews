@@ -1,6 +1,7 @@
 import requests
 import os
 import feedparser
+import main
 
 class Browserbot:
 

@@ -40,7 +40,7 @@ def steam_fetch_limbus_news():
     data = response.json() # 將 JSON 轉為 Python 字典
 
     # 依照結構抓出需要的資料
-    news_item = data["appnews"]["newsitems"][0]
+    news_item = data["appnews"]["newsitems"]
     print(news_item)
     current_gid = news_item["gid"]
     last_id = getlastgid()
@@ -70,14 +70,7 @@ def steam_fetch_limbus_news():
         
     else:
         print("目前沒有新消息")
-def xfetch():
-
-    bot = X.Browserbot()
-    bot.setdriver()
-    bot.getcookies()
-    bot.x_fetch()
-    
     
 if __name__ == "__main__":
-    xfetch()
+    steam_fetch_limbus_news()
     

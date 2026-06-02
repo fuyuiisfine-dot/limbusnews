@@ -1,0 +1,105 @@
+import requests
+import os
+from bs4 import BeautifulSoup as bs
+import sys
+import re #之後正規表達式更新
+import xscraper
+
+
+class NewsSource:
+    def __init__(self):
+        self.Last_GID = "last_new_id.txt"
+     #get last steam gid
+    def getlastgid(self):
+        if os.path.exists(self.Last_GID):
+            with open(self.Last_GID,"r") as f:
+                return f.read().strip()
+        else:
+            return None
+
+    #save steam gid
+    def savegid(self,newsid):
+        with open(self.Last_GID,"w") as f:
+            f.write(str(newsid))
+            
+class steam_robot(NewsSource):
+    def __init__(self):
+        self.cdn_prefix = "https://clan.cloudflare.steamstatic.com/images/"
+    #get steam news
+    def data_processing(self):
+
+        if not self.WEBHOOK_URL:
+            print("錯誤：找不到 DISCORD_WEBHOOK_URL 環境變數！")
+            sys.exit(1)  # 讓程式主動停止，並噴出好懂的錯誤訊息
+        api_url = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
+        params = {
+            "appid": 1973530,    
+            "count": 3,          # 只拿最新三則
+            "maxlength": 1000,    # 直接限制字數
+            "format": "json"
+        }
+
+        response = requests.get(api_url, params=params)
+        print(f"debug : status code = {response.status_code}")
+        if(response.status_code != 200):
+            print("error")
+            return
+        if response.status_code == 200:
+            try:
+                data = response.json() # 將 JSON 轉為 Python 字典
+            except requests.exceptions.JSONDecodeError:
+                print("get something but not a json")
+        else:
+            print("get nothing")
+        
+        # 依照結構抓出需要的資料
+        news_item = data["appnews"]["newsitems"]
+        last_gid = self.getlastgid()
+        new_posts = []
+        for item in news_item:
+            if item["gid"] == last_gid:
+                break
+            new_posts.append(item)
+        for post in reversed(new_posts):
+            #準備發送給 Discord 的資料
+            title = post["title"]
+            link = post["url"]
+            raw_content = post["contents"]
+        
+                
+            #處理圖片顯示問題，讓圖片能正常顯示在discord上
+            if "{STEAM_CLAN_IMAGE}" in raw_content:
+                raw_content = raw_content.replace("{STEAM_CLAN_IMAGE}/", self.cdn_prefix)
+                ## else: return content 切記return 後的自動結束此函式
+            
+            soup = bs(raw_content,"html.parser")
+            clean_content = soup.get_text().strip()
+            
+
+            # 待修改
+            payload = {
+                "username": "梅菲斯特情報號",
+                "content": (f"📌**Ciallo～(∠・ω< )⌒☆:{title}**\n"
+                            f"[點我查看]({link})\n"
+                            f"大綱:\n{clean_content}\n"
+                            #f"[圖連結]({clean_images})"
+                            )
+            }
+                
+            #透過 Webhook 發送
+            requests.post(self.WEBHOOK_URL, json=payload)
+            
+        print(f"成功發送超連結組（共 {len(new_posts)} 則）")
+        if new_posts:
+            self.savegid(new_posts[0]["gid"])
+            print(f"已更新最新 GID 為: {new_posts[0]['gid']}")
+        else:
+            print(f"目前沒有最新的新聞，目前最新的 GID 是:{self.getlastgid()}")
+
+if __name__ == "__main__":
+
+    xbot = xscraper.Browserbot()
+    xbot.main()
+    steambot = steam_robot()
+    steambot.steam_fetch_limbus_news()
+    
