@@ -96,7 +96,8 @@ class XRSSScraper(NewsSource):
     def fetch_new_posts(self):
         try:
             feed = feedparser.parse(self.rss_url)
-            if not feed.entries: return []
+            if not feed.entries: 
+                return []
             
             latest = feed.entries[0]
             last_link = self.get_last_id()

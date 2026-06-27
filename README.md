@@ -46,7 +46,7 @@ python main.py
 ## 📂 檔案結構
 
 - `main.py`: 程式進入點，整合 Steam 與 X 的爬蟲邏輯。
-- `xscraper.py`: 負責監控 X (Twitter) 的 RSS 更新。
+- `xscraper.py`: 負責監控 X (Twitter) 的 RSS 更新。 x的rss需要換方式得到
 - `last_new_id.txt` / `LASTFILE.txt`: 用於紀錄最後一次發送的新聞 ID（請勿手動修改）。
 - `.github/workflows/run.yml`: GitHub Actions 的排程設定檔。
 

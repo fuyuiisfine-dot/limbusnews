@@ -9,6 +9,7 @@ import xscraper
 class NewsSource:
     def __init__(self):
         self.Last_GID = "last_new_id.txt"
+        Self.xlast_GID = "LASTFILE.txt"
      #get last steam gid
     def getlastgid(self):
         if os.path.exists(self.Last_GID):
@@ -25,8 +26,9 @@ class NewsSource:
 class steam_robot(NewsSource):
     def __init__(self):
         self.cdn_prefix = "https://clan.cloudflare.steamstatic.com/images/"
+        self.WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
     #get steam news
-    def data_processing(self):
+    def steam_fetch(self):
 
         if not self.WEBHOOK_URL:
             print("錯誤：找不到 DISCORD_WEBHOOK_URL 環境變數！")
@@ -101,5 +103,5 @@ if __name__ == "__main__":
     xbot = xscraper.Browserbot()
     xbot.main()
     steambot = steam_robot()
-    steambot.steam_fetch_limbus_news()
+    steambot.steam_fetch()
     

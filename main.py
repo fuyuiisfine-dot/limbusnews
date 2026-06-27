@@ -16,7 +16,7 @@ def main():
     steam_bot = SteamScraper(app_id=1973530, state_file="last_new_id.txt")
     
     # X (Twitter): 使用 RSS 服務
-    rss_url = os.getenv("X_RSS_URL", "https://rss.app/feeds/WQnu37hFsCx3HJ9y.xml")
+    rss_url = os.getenv("X_RSS_URL","https://rss.app/feeds/EaDXkH8x6DpjNTfC.xml")
     x_bot = XRSSScraper(rss_url=rss_url, state_file="LASTFILE.txt")
 
     # 3. 執行 Steam 檢查
