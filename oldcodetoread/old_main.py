@@ -3,13 +3,13 @@ import os
 from bs4 import BeautifulSoup as bs
 import sys
 import re #之後正規表達式更新
-import xscraper
+import oldcodetoread.xscraper as xscraper
 
 
 class NewsSource:
     def __init__(self):
         self.Last_GID = "last_new_id.txt"
-        Self.xlast_GID = "LASTFILE.txt"
+        self.xlast_GID = "LASTFILE.txt"
      #get last steam gid
     def getlastgid(self):
         if os.path.exists(self.Last_GID):
