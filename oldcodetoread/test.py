@@ -2,7 +2,7 @@ import requests
 import os
 from bs4 import BeautifulSoup as bs
 import sys
-import xscraper as X
+import oldcodetoread.xscraper as X
 
 #webhook url but need to improve its security in the future
 WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
